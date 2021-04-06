@@ -6,15 +6,19 @@ This script adds the the containing package as a valid debug adapter in the Debu
 """
 
 from os.path import join, abspath, dirname
+from Debugger.modules.debugger.debugger import Debugger
 from threading import Timer
+from shutil import copy
+import platform
 import sublime
 import time
 import sys
+import os
 
 
-adapter_type = "template"  # NOTE: type name must be unique to each adapter
+adapter_type = "MayaUI"  # NOTE: type name must be unique to each adapter
 package_path = dirname(abspath(__file__))
-adapter_path = join(package_path, "adapter")  # customize this to work with your DAP implementation
+adapter_path = join(package_path, "adapter")
 
 
 # The version is only used for display in the GUI
@@ -24,24 +28,19 @@ version = "1.0"
 # but they all need a "label", "description", and "body"
 config_snippets = [
     {
-        "label": "Template Plugin",
-        "description": "A template for creating DAP implementations for Sublime Text 3",
+        "label": "Maya: Custom UI Debugging",
+        "description": "Debug Custom UI Components/Functions in Maya",
         "body": {
-            # These keys are required in each configuration
-            "name": "Template Plugin",  
+            "name": "Maya: Custom UI Debugging",
             "type": adapter_type,
-            "request": "attach",  # can only be attach or launch
-
-            # Python adapters usually require this one
             "program": "\${file\}",
-
-            # The rest of the settings are up to you. These (and the above) can
-            # be modified by the user and will be sent to your adapter at runtime
-            "custom setting 1": "",
-            "custom setting 2": 0,
-            "custom setting group": {
-                "setting 1": True,
-            }
+            "request": "attach",  # can only be attach or launch
+            "interpreter": sys.executable,
+            "debugpy":  # The host/port used to communicate with debugpy in Maya
+            {
+                "host": "localhost",
+                "port": 7005
+            },
         }
     },
 ]
@@ -54,7 +53,15 @@ settings = {
 
 # Instantiate variables needed for checking thread
 running = False
-check_speed = 1  # number of seconds to wait between checks for adapter presence in debugger instances
+check_speed = 3  # number of seconds to wait between checks for adapter presence in debugger instances
+
+# Add debugpy injector to Maya if not present
+first_setup = False
+module_path = join(adapter_path, 'resources', 'module')
+separator = ';' if platform.system() == 'Windows' else ':'
+
+if 'MAYA_MODULE_PATH' not in os.environ or module_path not in os.environ['MAYA_MODULE_PATH']:
+    first_setup = True
 
 
 def check_for_adapter():
@@ -62,12 +69,8 @@ def check_for_adapter():
     Gets run in a thread to inject configuration snippets and version information 
     into adapter objects of type adapter_type in each debugger instance found
     """
-    
-    from Debugger.modules.debugger.debugger import Debugger
 
     while running:
-
-        time.sleep(check_speed)
 
         for instance in Debugger.instances.values():
             adapter = getattr(instance, "adapters", {}).get(adapter_type, None)
@@ -75,6 +78,8 @@ def check_for_adapter():
             if adapter and not adapter.version:
                 adapter.version = version
                 adapter.snippets = config_snippets
+        
+        time.sleep(check_speed)
 
 
 def plugin_loaded():
@@ -90,9 +95,18 @@ def plugin_loaded():
     sublime.save_settings('debugger.sublime-settings')
 
     # Start checking thread
-    global running, timer
+    global running
     running = True
     Timer(1, check_for_adapter).start()
+
+    if first_setup:
+        sublime.message_dialog(
+            "Thanks for installing the Maya UI debug adapter!\n"
+            "Because this is your first time using the adapter, a one-time "
+            "setup must be performed: Please create or modify the "
+            "MAYA_MODULE_PATH environment variable to contain\n\n \"{0}\" \n\n"
+            "then restart both Maya and Sublime Text.".format(module_path + separator)
+        )
 
 
 def plugin_unloaded():

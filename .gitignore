@@ -121,10 +121,13 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-.idea
 
 # Pyre type checker
 .pyre/
 
+# Adapter files
 adapter/__pycache__/
-adapter/debug.py
+adapter/log.txt
+adapter/finished.txt
+
+sublime_debugger.json

@@ -1,7 +1,6 @@
 
 from sys import stdin, stdout
-from queue import Queue
-from util import CONTENT_HEADER, run_in_new_thread, log
+from util import CONTENT_HEADER, run, log, Queue
 
 
 class DebuggerInterface:
@@ -18,14 +17,14 @@ class DebuggerInterface:
     def start(self):
         if not self.running:
             self.running = True
-            run_in_new_thread(self._debugger_send_loop)
+            run(self._debugger_send_loop)
             self._read_debugger_input()
     
     def start_nonblocking(self):
         if not self.running:
             self.running = True
-            run_in_new_thread(self._debugger_send_loop)
-            run_in_new_thread(self._read_debugger_input)
+            run(self._debugger_send_loop)
+            run(self._read_debugger_input)
 
     def stop(self):
         if self.running:
@@ -66,7 +65,10 @@ class DebuggerInterface:
 
             except Exception as e:
                 log("Failure reading stdin: " + str(e))
-                return
+                log(header)
+                log(message)
+                log(total_content)
+                raise e
 
 
     def _debugger_send_loop(self):
