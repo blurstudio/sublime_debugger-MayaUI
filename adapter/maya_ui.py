@@ -46,13 +46,21 @@ class MayaUI(adapter.AdapterConfiguration):
 		module_path = join(adapter_path, 'resources', 'module')
 		separator = ';' if platform.system() == 'Windows' else ':'
 
-		if 'MAYA_MODULE_PATH' not in os.environ or module_path not in os.environ['MAYA_MODULE_PATH']:
+		if 'MAYA_MODULE_PATH' not in os.environ:
 			sublime.message_dialog(
 				"The MAYA_MODULE_PATH environment variable was not found. "
 				"Please create/modify it to contain\n\n \"{0}\" \n\n"
 				"then restart both Maya and Sublime Text.".format(module_path + separator)
 			)
 			return adapter.SocketTransport(log, "0.0.0.0", 0)
+		elif module_path not in os.environ['MAYA_MODULE_PATH']:
+			sublime.message_dialog(
+				"The path\n\n \"{0}\" \n\n"
+				"was not found in your MAYA_MODULE_PATH environment variable."
+				" Please add it and then restart both Maya and Sublime Text.".format(module_path + separator)
+			)
+			return adapter.SocketTransport(log, "0.0.0.0", 0)
+
 
 		# Start by finding the python installation on the system
 		python = configuration.get("pythonPath")
