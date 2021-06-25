@@ -57,7 +57,8 @@ class MayaUI(adapter.AdapterConfiguration):
 			sublime.message_dialog(
 				"The path\n\n \"{0}\" \n\n"
 				"was not found in your MAYA_MODULE_PATH environment variable."
-				" Please add it and then restart both Maya and Sublime Text.".format(module_path + separator)
+				" Please add it (or ensure it is entered correctly) and then restart"
+				" both Maya and Sublime Text.".format(module_path + separator)
 			)
 			return adapter.SocketTransport(log, "0.0.0.0", 0)
 
