@@ -1,6 +1,11 @@
 
 from Debugger.modules.typecheck import *
-import Debugger.modules.debugger.adapter as adapter
+
+# This import moves around based on the Debugger version being used
+try:
+	import Debugger.modules.debugger.adapter as adapter
+except:
+	import Debugger.modules.adapters.adapter as adapter
 
 from os.path import abspath, join, dirname
 from shutil import which
