@@ -46,15 +46,16 @@ debugpy_module = r"{debugpy_path}"
 if debugpy_module not in sys.path:
     sys.path.insert(0, debugpy_module)
 
-# import debugpy
-import ptvsd
+import debugpy
+
+interpreter = "{interpreter}"
 
 try:
-    # debugpy.configure(python=r"{interpreter}")
-    # debugpy.listen(("{hostname}",{port}))
-    ptvsd.enable_attach(address=("{hostname}",{port}))
+    debugpy.configure(python=interpreter)
+    debugpy.listen(("{hostname}",{port}))
 except Exception as e:
     sys.stderr.write("\\n\\nAn error occurred while trying to connect to Sublime Text 4:\\n" + str(e))
+    sys.stderr.write("\\n\\nInterpreter used: " + interpreter + "\\n")
 else:
     sys.stderr.write("\\n\\nConnection to Sublime Debugger is active.\\n\\n")
 """
